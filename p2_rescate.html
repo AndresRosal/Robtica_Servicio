@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>P2: Dron de Rescate - Andrés Rosal</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0;">
+
+    <!-- Barra de navegación para volver -->
+    <nav style="background: #2c3e50; padding: 15px; text-align: left;">
+        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">← Volver al Menú Principal</a>
+    </nav>
+
+    <section style="max-width: 800px; margin: 40px auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0;">Vlog: Práctica de Robótica de Servicio - Dron de Rescate</h1>
+        <p><strong>Autor:</strong> Andrés Rosal<br>
+        <strong>Asignatura:</strong> Robótica de Servicio</p>
+
+        <h2 style="color: #2980b9;">1. Introducción y Retos Técnicos</h2>
+        <p>El objetivo de esta práctica es programar un dron que despega desde un barco de salvamento, se desplaza hasta la zona donde se sabe aproximadamente que hay náufragos, los busca reconociendo sus caras con la cámara ventral y guarda la posición de cada uno para una posterior maniobra de rescate.</p>
+
+        <p>Los principales retos han sido tres: traducir las coordenadas GPS que da el enunciado al sistema de coordenadas local del dron, detectar caras que aparecen tumbadas en el agua con cualquier orientación, y convertir la posición de una cara en la imagen a una posición real en metros sobre el mar sin registrar dos veces a la misma persona.</p>
+
+        <h2 style="color: #2980b9;">2. Demostración del Algoritmo</h2>
+        <p>A continuación, presento un vídeo que muestra el comportamiento del dron durante la misión. <strong>El vídeo está acelerado con un factor de velocidad de x2</strong> para que la búsqueda completa no resulte demasiado larga. En él se puede ver el despegue, el barrido de la zona, la detección de las víctimas (marcadas en verde en la cámara ventral) y el nivel de batería del dron.</p>
+
+        <!-- Contenedor del video -->
+        <div style="text-align: center; margin: 30px 0;">
+            <video width="100%" controls style="border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 700px;">
+                <source src="rescue_dron_fast.mp4" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+            </video>
+            <p style="color: #666; font-size: 0.85rem; margin-top: 10px;">Vídeo reproducido a velocidad x2</p>
+        </div>
+
+        <h2 style="color: #2980b9;">3. Estrategia de Implementación: Máquina de Estados</h2>
+        <p>Para organizar la misión he diseñado una <strong>Máquina de Estados Finitos</strong>. El dron pasa por las siguientes fases según su situación:</p>
+        <ul style="background: #eef7fd; padding: 20px 40px; border-radius: 8px;">
+            <li><strong>Despegue:</strong> El dron despega desde la cubierta del barco hasta la altitud de vuelo. Cuando detecta que ya está en el aire, pasa a la siguiente fase.</li>
+            <li><strong>Ir a la zona de búsqueda:</strong> Se desplaza hasta el centro de la zona de los supervivientes, calculado a partir de las coordenadas GPS del barco y de las víctimas (convertidas a metros en norte y oeste respecto al punto de despegue) y ajustado tras las pruebas en el simulador.</li>
+            <li><strong>Barrido en espiral:</strong> Una vez en la zona, el dron recorre una espiral cuadrada que crece hacia fuera desde el centro, con una separación entre pasadas pensada para que la cámara cubra todo el terreno sin dejar huecos. Durante este estado es cuando se buscan caras.</li>
+            <li><strong>Regreso y aterrizaje:</strong> Cuando encuentra a todas las víctimas, completa la espiral o se queda con poca batería, el dron vuelve al barco y aterriza. Para confirmar el aterrizaje combino varias comprobaciones (estado del dron, altura sobre la cubierta y que la altura se mantenga estable durante un tiempo).</li>
+            <li><strong>Recarga:</strong> Si la misión no había terminado, el dron recarga la batería y vuelve a despegar, retomando la búsqueda exactamente en el punto de la espiral donde la había dejado. Hay un número máximo de salidas para que la misión siempre termine.</li>
+        </ul>
+
+        <h2 style="color: #2980b9;">4. Visión, Localización de Víctimas y Batería</h2>
+        <p>Para la detección utilizo el <strong>clasificador Haar Cascade de caras frontales de OpenCV</strong>. Como los náufragos flotan en el agua con cualquier orientación y este clasificador solo reconoce caras "derechas", la imagen de la cámara ventral se analiza rotada en varios ángulos (cada 45 grados). Las detecciones se devuelven después al sistema de la imagen original para dibujarlas y localizarlas.</p>
+        <p>Para obtener la posición real de cada víctima, calculo cuántos metros representa cada píxel a partir de la altitud del dron y del campo de visión de la cámara. El desplazamiento de la cara respecto al centro de la imagen se pasa a metros, se gira según la orientación del dron y se suma a su posición actual. Si la nueva posición está muy cerca de una víctima ya registrada, se descarta para no contar dos veces a la misma persona.</p>
+        <p>Por último, he simulado una <strong>batería</strong> que se descarga con el tiempo de vuelo. En la imagen de la cámara se muestra en todo momento el porcentaje restante y el estado actual, cambiando a rojo cuando la batería está baja y el dron debe volver al barco a recargar.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 0.8rem;">
+        &copy; 2026 Andrés Rosal - Prácticas de Robótica
+    </footer>
+
+</body>
+</html>

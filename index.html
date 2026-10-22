@@ -2,14 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mi web</title>
+    <title>Portafolio de Robótica - Andrés Rosal</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 0; }
+        header { background: #2c3e50; color: white; text-align: center; padding: 50px 20px; }
+        .container { max-width: 1000px; margin: 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 20px; }
+        .card { background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; transition: transform 0.3s; }
+        .card:hover { transform: translateY(-10px); }
+        .card-content { padding: 20px; }
+        .card-title { font-size: 1.5rem; margin: 0; color: #2c3e50; }
+        .card-desc { color: #666; margin: 15px 0; font-size: 0.95rem; }
+        .btn { display: inline-block; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; font-weight: bold; }
+        .btn-p2 { background: #e74c3c; } /* Rojo para el rescate */
+    </style>
 </head>
-
 <body>
 
-    <h1>Hola, esta es mi web</h1>
+<header>
+    <h1>Vlogs de Prácticas: Robótica de Servicio</h1>
+    <p>Andrés Rosal | Universidad</p>
+</header>
 
-    <p>He creado esta página con GitHub Pages.</p>
+<div class="container">
+    <!-- TARJETA PRÁCTICA 1 -->
+    <div class="card">
+        <div class="card-content">
+            <h2 class="card-title">P1: Aspiradora con Localización</h2>
+            <p class="card-desc">Cobertura completa de una vivienda a partir del mapa: discretización en rejilla, barrido en zigzag, puntos de retorno y planificación de caminos con BFS.</p>
+            <a href="p1_aspiradora.html" class="btn">Ver Vlog de Práctica</a>
+        </div>
+    </div>
+
+    <!-- TARJETA PRÁCTICA 2 -->
+    <div class="card">
+        <div class="card-content">
+            <h2 class="card-title">P2: Dron de Rescate</h2>
+            <p class="card-desc">Búsqueda de supervivientes en el mar con un dron: navegación GPS, barrido en espiral, detección de caras con OpenCV y gestión de batería.</p>
+            <a href="p2_rescate.html" class="btn btn-p2">Ver Vlog de Práctica</a>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>

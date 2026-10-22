@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>P1: Aspiradora con Localización - Andrés Rosal</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0;">
+
+    <!-- Barra de navegación para volver -->
+    <nav style="background: #2c3e50; padding: 15px; text-align: left;">
+        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">← Volver al Menú Principal</a>
+    </nav>
+
+    <section style="max-width: 800px; margin: 40px auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <h1 style="color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0;">Vlog: Práctica de Robótica de Servicio - Aspiradora con Localización</h1>
+        <p><strong>Autor:</strong> Andrés Rosal<br>
+        <strong>Asignatura:</strong> Robótica de Servicio</p>
+
+        <h2 style="color: #2980b9;">1. Introducción y Retos Técnicos</h2>
+        <p>El objetivo de esta práctica es programar una aspiradora autónoma que, a diferencia de una aspiradora puramente reactiva, conoce el mapa de la vivienda y su propia posición. Con esa información el robot debe planificar un recorrido que cubra toda la superficie libre de la casa, sin dejar zonas sin limpiar y repitiendo el menor número posible de casillas.</p>
+
+        <p>El principal reto técnico ha sido relacionar correctamente el mapa (una imagen en píxeles) con las coordenadas reales del simulador. Ha sido necesario calibrar a mano la escala y el desplazamiento entre ambos sistemas, ya que un pequeño error hacía que el robot rozara las paredes de un lado de la casa. Otro reto ha sido conseguir que el robot no se quede "encerrado" cuando termina una zona, sino que sepa volver a las zonas que ha dejado pendientes.</p>
+
+        <h2 style="color: #2980b9;">2. Demostración del Algoritmo</h2>
+        <p>A continuación, presento un vídeo que muestra el comportamiento del robot en el entorno de pruebas. <strong>El vídeo está acelerado con un factor de velocidad de x3.6</strong>, ya que la limpieza completa de la vivienda lleva bastante tiempo y a velocidad real el clip resultaría demasiado largo. En la parte de la interfaz se puede ver en tiempo real el mapa con las casillas ya limpiadas, los puntos pendientes y el objetivo actual del robot.</p>
+
+        <!-- Contenedor del video -->
+        <div style="text-align: center; margin: 30px 0;">
+            <video width="100%" controls style="border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 700px;">
+                <source src="p1_aspiradora.mp4" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+            </video>
+            <p style="color: #666; font-size: 0.85rem; margin-top: 10px;">Vídeo reproducido a velocidad x3.6</p>
+        </div>
+
+        <h2 style="color: #2980b9;">3. Estrategia de Implementación: Mapa en Rejilla y Barrido en Zigzag</h2>
+        <p>Para lograr una cobertura completa, he dividido el problema en varias fases. Primero se procesa el mapa y después el robot lo recorre siguiendo un patrón ordenado:</p>
+        <ul style="background: #eef7fd; padding: 20px 40px; border-radius: 8px;">
+            <li><strong>Procesado del mapa:</strong> La imagen del mapa se binariza para separar zonas libres y obstáculos, y después se aplica una erosión. De esta forma los obstáculos "engordan" y se reserva un margen de seguridad equivalente al tamaño del robot, evitando que choque con paredes y muebles.</li>
+            <li><strong>Discretización en rejilla:</strong> El mapa se divide en casillas de tamaño fijo. Cada casilla puede estar en tres estados: obstáculo, libre sin limpiar o ya limpiada. Si una casilla contiene parte de un obstáculo se considera ocupada entera, para ser conservador.</li>
+            <li><strong>Barrido en zigzag (boustrophedon):</strong> El robot recorre cada fila de casillas en horizontal. Cuando no puede seguir avanzando, cambia a la fila contigua (arriba o abajo) e invierte el sentido de avance, como si cortara el césped.</li>
+            <li><strong>Puntos de retorno:</strong> Mientras avanza, el robot va guardando las casillas vecinas libres que deja atrás sin limpiar. Cuando el zigzag se bloquea, elige el punto de retorno más cercano y viaja hasta él para continuar el barrido desde allí.</li>
+            <li><strong>Planificación de caminos con BFS:</strong> Para llegar a un punto de retorno se calcula el camino más corto por las casillas transitables mediante una búsqueda en anchura. Si no quedan puntos de retorno, se busca directamente la casilla sin limpiar más cercana. Cuando ya no queda ninguna alcanzable, la limpieza se da por terminada.</li>
+        </ul>
+
+        <h2 style="color: #2980b9;">4. Control y Localización</h2>
+        <p>Para moverse de una casilla a la siguiente, el robot usa su posición y orientación reales y las compara con el centro de la casilla objetivo, transformando previamente las coordenadas del mapa a coordenadas del simulador. El giro se controla con un <strong>controlador PD</strong> sobre el error de orientación: si el error es grande, el robot gira sobre sí mismo sin avanzar, y solo cuando está bien alineado avanza en línea recta a velocidad constante. Al entrar en un radio pequeño alrededor del objetivo, la casilla se considera alcanzada y se pasa a la siguiente.</p>
+        <p>Además, he añadido una visualización del mapa en la interfaz web en la que se pintan en verde las casillas limpias, en amarillo los puntos de retorno pendientes, en azul claro el camino de enlace que está siguiendo y en rojo la casilla objetivo, junto con la posición y orientación del robot. Esto ha sido muy útil para depurar el comportamiento del algoritmo.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 0.8rem;">
+        &copy; 2026 Andrés Rosal - Prácticas de Robótica
+    </footer>
+
+</body>
+</html>
