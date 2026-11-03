@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>P3: Autoparking - Andrés Rosal</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; margin: 0; padding: 0;">
+
+    <!-- Barra de navegación para volver -->
+    <nav style="background: #2c3e50; padding: 15px; text-align: left;">
+        <a href="index.html" style="color: white; text-decoration: none; font-weight: bold;">← Volver al Menú Principal</a>
+    </nav>
+
+    <section style="max-width: 800px; margin: 40px auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <h1 style="color: #2c3e50; border-bottom: 2px solid #27ae60; padding-bottom: 10px; margin-top: 0;">Vlog: Práctica de Robótica de Servicio - Autoparking</h1>
+        <p><strong>Autor:</strong> Andrés Rosal<br>
+        <strong>Asignatura:</strong> Robótica de Servicio</p>
+
+        <h2 style="color: #27ae60;">1. Introducción y Retos Técnicos</h2>
+        <p>El objetivo de esta práctica es programar un coche autónomo (un Prius en Gazebo) que recorre una calle buscando un hueco libre entre los coches aparcados a su derecha y, cuando lo encuentra, aparca en línea marcha atrás, quedando recto y centrado dentro de la plaza.</p>
+
+        <p>Los principales retos han sido cuatro:</p>
+        <ul>
+            <li><strong>Interpretar el LiDAR 3D:</strong> el sensor va en el techo, desplazado hacia atrás y girado unos -90º respecto al coche. Hay que pasar cada punto al marco del vehículo y filtrar el suelo, los bordillos, las ramas de los árboles y el propio coche.</li>
+            <li><strong>Detectar un hueco real:</strong> distinguir un espacio entre dos coches lo bastante largo para aparcar, sin confundir la acera o las farolas con coches.</li>
+            <li><strong>La dirección es lenta:</strong> el volante tarda unos 2,5 segundos en ir de tope a tope, así que si el coche se mueve mientras gira, la trayectoria no es la esperada. Por eso cada cambio de volante se hace con el coche parado.</li>
+            <li><strong>No chocar:</strong> en los primeros intentos el coche llegaba a golpear al coche de atrás durante la maniobra, lo que obligó a añadir una distancia de seguridad medida con el LiDAR.</li>
+        </ul>
+
+        <h2 style="color: #27ae60;">2. Demostración del Algoritmo</h2>
+        <p>A continuación, presento un vídeo con la ejecución completa. <strong>El vídeo está acelerado con un factor de velocidad de x3</strong>, ya que las maniobras de aparcamiento son lentas. En él se ve cómo el coche avanza por la calle buscando hueco, detecta el espacio libre, realiza la maniobra marcha atrás y termina centrándose entre los dos coches. En rojo aparecen los puntos del LiDAR que usa el algoritmo.</p>
+
+        <!-- Contenedor del video -->
+        <div style="text-align: center; margin: 30px 0;">
+            <video width="100%" controls style="border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); max-width: 700px;">
+                <source src="p3_autoparking_x3.mp4" type="video/mp4">
+                Tu navegador no soporta la reproducción de video.
+            </video>
+            <p style="color: #666; font-size: 0.85rem; margin-top: 10px;">Vídeo reproducido a velocidad x3</p>
+        </div>
+
+        <h2 style="color: #27ae60;">3. Estrategia de Implementación: Fases de la Maniobra</h2>
+        <p>Toda la lógica trabaja en un sistema de coordenadas propio de la calle, calculado con la odometría respecto a la pose inicial: <strong>s</strong> es la distancia recorrida a lo largo de la calle, <strong>d</strong> la distancia lateral hacia la derecha y <strong>ψ</strong> el ángulo del coche respecto a la dirección de la calle. Así las condiciones de parada de cada movimiento son geométricas y no dependen de cómo esté orientado el mapa. El programa se divide en tres fases:</p>
+        <ul style="background: #eafaf1; padding: 20px 40px; border-radius: 8px;">
+            <li><strong>Búsqueda de hueco:</strong> El coche avanza a velocidad de crucero mirando con el LiDAR una franja estrecha justo a su derecha. Mientras ve coches, guarda la distancia lateral a su costado y, con un control proporcional, se mantiene paralelo a ellos con medio metro de separación. Cuando la franja queda libre empieza a medir; si tras al menos 6,5 m libres vuelve a aparecer un coche, ese es el hueco. Si tras 9 m no aparece ningún coche, se considera una plaza libre igualmente. También hay un freno de emergencia si aparece un obstáculo delante.</li>
+            <li><strong>Maniobra marcha atrás:</strong> Siguiendo la regla de autoescuela, el coche se coloca con la rueda trasera a la altura de la trasera del coche de delante (más un pequeño adelanto). Primero avanza girando a la izquierda para separar el morro y coger ángulo. Después repite este ciclo hasta quedar dentro y recto:
+                <ol>
+                    <li>Atrás con el volante a la derecha hasta alcanzar unos 0,5 rad de ángulo.</li>
+                    <li>Atrás en recto un metro para meter el coche en la plaza.</li>
+                    <li>Atrás con el volante a la izquierda hasta que el coche está casi recto.</li>
+                    <li>Adelante con el volante a la derecha para terminar de enderezarse.</li>
+                </ol>
+                Si al acabar el coche no está lo bastante dentro o recto, avanza un poco para ganar espacio y vuelve a intentarlo (con un máximo de 8 intentos).</li>
+            <li><strong>Centrado en la plaza:</strong> Con el volante recto, el coche mide la distancia libre delante y detrás y se mueve hacia adelante o hacia atrás hasta que ambas son iguales. Si solo hay un coche, se queda a un metro de él. Al terminar, el coche se detiene y muestra en consola la distancia lateral y el ángulo final.</li>
+        </ul>
+
+        <h2 style="color: #27ae60;">4. Percepción con el LiDAR 3D y Seguridad</h2>
+        <p>En cada iteración se leen los puntos del LiDAR y se transforman al marco del coche aplicando la rotación y la posición del sensor en el techo. Después se descartan los puntos con altura menor de 0,25 m (suelo y bordillo), los que están por encima de 2 m (ramas y copas de árboles) y los que caen dentro de la silueta del propio Prius. Los puntos que quedan son los que se pintan en rojo en la interfaz, lo que me ha servido mucho para depurar qué estaba "viendo" realmente el algoritmo.</p>
+        <p>A partir de esos puntos se calculan dos medidas que se usan en todo el programa: la <strong>holgura delantera</strong> (espacio libre desde el parachoques delantero) y la <strong>holgura trasera</strong> (espacio libre desde el trasero), considerando solo los puntos que están en la línea del coche.</p>
+        <p>Para que la maniobra sea segura, el coche nunca avanza más allá del punto donde empezó a aparcar (así no puede chocar con el coche de delante) y, en los movimientos marcha atrás, se detiene en cuanto el coche de atrás queda a menos de 0,5 m. Además, cada vez que hay que cambiar la posición del volante, el coche se para y espera a que la dirección llegue a su sitio antes de seguir moviéndose, lo que hace que las trayectorias sean mucho más predecibles.</p>
+    </section>
+
+    <footer style="text-align: center; padding: 20px; color: #666; font-size: 0.8rem;">
+        &copy; 2026 Andrés Rosal - Prácticas de Robótica
+    </footer>
+
+</body>
+</html>
